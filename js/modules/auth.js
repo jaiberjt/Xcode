@@ -1,29 +1,25 @@
 // Módulo de Autenticación
 const Auth = (function() {
     // Variables privadas
-    let currentUser = null;
     const storageKey = 'auth_user';
+    let currentUser = JSON.parse(localStorage.getItem(storageKey) || 'null');
 
-    // Métodos privados
-    const validateCredentials = (username, password) => {
-        // Aquí iría la validación real contra un backend
-        return username.length > 0 && password.length > 0;
+    // Usuario por defecto para desarrollo
+    const defaultUser = {
+        id: "1",
+        username: "admin",
+        nombre: "Administrador",
+        email: "admin@helios.com",
+        role: "admin"
     };
 
     // API pública
     return {
         login(username, password) {
-            if (validateCredentials(username, password)) {
-                currentUser = { 
-                    username, 
-                    role: 'user',
-                    nombre: 'Usuario Demo',
-                    email: 'demo@helios.com'
-                };
-                localStorage.setItem(storageKey, JSON.stringify(currentUser));
-                return true;
-            }
-            return false;
+            // Para desarrollo, aceptamos cualquier credencial
+            currentUser = defaultUser;
+            localStorage.setItem(storageKey, JSON.stringify(currentUser));
+            return true;
         },
 
         logout() {
@@ -33,25 +29,15 @@ const Auth = (function() {
         },
 
         getCurrentUser() {
-            if (!currentUser) {
-                const stored = localStorage.getItem(storageKey);
-                if (stored) {
-                    currentUser = JSON.parse(stored);
-                }
-            }
-            return currentUser;
-        },
-
-        isAuthenticated() {
-            return this.getCurrentUser() !== null;
+            return currentUser || defaultUser; // Para desarrollo, siempre devolvemos un usuario
         },
 
         checkAuth() {
-            if (!this.isAuthenticated()) {
-                window.location.href = 'login.html';
-                return false;
-            }
-            return true;
+            return true; // Para desarrollo, siempre autenticado
+        },
+
+        isAdmin() {
+            return this.getCurrentUser().role === 'admin';
         }
     };
 })(); 

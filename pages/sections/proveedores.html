@@ -78,139 +78,151 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const providerForm = document.getElementById('providerForm');
-    const providerList = document.getElementById('providerList');
-    const searchInput = document.getElementById('searchProvider');
-    const formTitle = document.getElementById('formTitle');
-    const cancelEditBtn = document.getElementById('cancelEdit');
-    let editingId = null;
+    <!-- Asegurarnos de cargar los scripts necesarios -->
+    <script src="../../js/utils/helpers.js"></script>
+    <script src="../../js/modules/providers.js"></script>
+    <script>
+    // Función de inicialización global que será llamada desde el dashboard
+    window.initProveedores = function() {
+        console.log('Inicializando módulo de proveedores...');
+        loadProviders();
+    };
 
-    // Cargar proveedores existentes
-    function loadProviders() {
-        const providers = Providers.getAllProviders();
-        renderProviders(providers);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const providerForm = document.getElementById('providerForm');
+        const providerList = document.getElementById('providerList');
+        const searchInput = document.getElementById('searchProvider');
+        const formTitle = document.getElementById('formTitle');
+        const cancelEditBtn = document.getElementById('cancelEdit');
+        let editingId = null;
 
-    // Renderizar proveedores en la tabla
-    function renderProviders(providers) {
-        providerList.innerHTML = providers.map(provider => `
-            <tr class="${provider.estado === 'inactivo' ? 'inactive-row' : ''}">
-                <td>${Helpers.sanitizeInput(provider.nombre)}</td>
-                <td>${Helpers.sanitizeInput(provider.ruc)}</td>
-                <td>${Helpers.sanitizeInput(provider.telefono)}</td>
-                <td>${Helpers.sanitizeInput(provider.email)}</td>
-                <td>
-                    <span class="status-badge ${provider.estado === 'activo' ? 'active' : 'inactive'}">
-                        ${provider.estado}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-text" onclick="editProvider('${provider.id}')" 
-                            ${provider.estado === 'inactivo' ? 'disabled' : ''}>
-                        <i class="material-icons">edit</i>
-                    </button>
-                    <button class="btn btn-sm btn-text" onclick="toggleProviderStatus('${provider.id}')">
-                        <i class="material-icons">${provider.estado === 'activo' ? 'block' : 'restore'}</i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    // Limpiar formulario
-    function resetForm() {
-        providerForm.reset();
-        editingId = null;
-        formTitle.textContent = 'Registro de Proveedor';
-        cancelEditBtn.style.display = 'none';
-        document.getElementById('providerId').value = '';
-        document.getElementById('ruc').removeAttribute('readonly');
-    }
-
-    // Manejar envío del formulario
-    providerForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(providerForm);
-        const provider = {
-            nombre: formData.get('nombre'),
-            ruc: formData.get('ruc'),
-            direccion: formData.get('direccion'),
-            telefono: formData.get('telefono'),
-            email: formData.get('email'),
-            productos: formData.get('productos')
-        };
-
-        try {
-            if (editingId) {
-                Providers.updateProvider(editingId, provider);
-                Helpers.handleError({ message: 'Proveedor actualizado con éxito' });
-            } else {
-                Providers.addProvider(provider);
-                Helpers.handleError({ message: 'Proveedor registrado con éxito' });
-            }
-            resetForm();
-            loadProviders();
-        } catch (error) {
-            Helpers.handleError(error);
+        // Cargar proveedores existentes
+        function loadProviders() {
+            console.log('Cargando proveedores...');
+            const providers = Providers.getAllProviders();
+            console.log('Proveedores encontrados:', providers);
+            renderProviders(providers);
         }
-    });
 
-    // Búsqueda de proveedores
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value;
-        const filteredProviders = Providers.searchProviders(query);
-        renderProviders(filteredProviders);
-    });
+        // Renderizar proveedores en la tabla
+        function renderProviders(providers) {
+            providerList.innerHTML = providers.map(provider => `
+                <tr class="${provider.estado === 'inactivo' ? 'inactive-row' : ''}">
+                    <td>${Helpers.sanitizeInput(provider.nombre)}</td>
+                    <td>${Helpers.sanitizeInput(provider.ruc)}</td>
+                    <td>${Helpers.sanitizeInput(provider.telefono)}</td>
+                    <td>${Helpers.sanitizeInput(provider.email)}</td>
+                    <td>
+                        <span class="status-badge ${provider.estado === 'activo' ? 'active' : 'inactive'}">
+                            ${provider.estado}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-text" onclick="editProvider('${provider.id}')"
+                                ${provider.estado === 'inactivo' ? 'disabled' : ''}>
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button class="btn btn-sm btn-text" onclick="toggleProviderStatus('${provider.id}')">
+                            <i class="material-icons">${provider.estado === 'activo' ? 'block' : 'restore'}</i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-    // Cancelar edición
-    cancelEditBtn.addEventListener('click', resetForm);
+        // Limpiar formulario
+        function resetForm() {
+            providerForm.reset();
+            editingId = null;
+            formTitle.textContent = 'Registro de Proveedor';
+            cancelEditBtn.style.display = 'none';
+            document.getElementById('providerId').value = '';
+            document.getElementById('ruc').removeAttribute('readonly');
+        }
 
-    // Cargar proveedores iniciales
-    loadProviders();
-});
+        // Manejar envío del formulario
+        providerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(providerForm);
+            const provider = {
+                nombre: formData.get('nombre'),
+                ruc: formData.get('ruc'),
+                direccion: formData.get('direccion'),
+                telefono: formData.get('telefono'),
+                email: formData.get('email'),
+                productos: formData.get('productos')
+            };
 
-// Funciones globales
-window.editProvider = function(id) {
-    const provider = Providers.getProvider(id);
-    if (provider) {
-        editingId = id;
-        document.getElementById('providerId').value = id;
-        document.getElementById('nombre').value = provider.nombre;
-        document.getElementById('ruc').value = provider.ruc;
-        document.getElementById('ruc').readOnly = true;
-        document.getElementById('direccion').value = provider.direccion;
-        document.getElementById('telefono').value = provider.telefono;
-        document.getElementById('email').value = provider.email;
-        document.getElementById('productos').value = provider.productos || '';
-        
-        document.getElementById('formTitle').textContent = 'Editar Proveedor';
-        document.getElementById('cancelEdit').style.display = 'inline-block';
-    }
-};
-
-window.toggleProviderStatus = function(id) {
-    const provider = Providers.getProvider(id);
-    if (provider) {
-        const action = provider.estado === 'activo' ? 'desactivar' : 'reactivar';
-        if (confirm(`¿Está seguro de ${action} este proveedor?`)) {
             try {
-                if (provider.estado === 'activo') {
-                    Providers.deleteProvider(id);
-                    Helpers.handleError({ message: 'Proveedor desactivado con éxito' });
+                if (editingId) {
+                    Providers.updateProvider(editingId, provider);
+                    Helpers.handleError({ message: 'Proveedor actualizado con éxito' });
                 } else {
-                    Providers.updateProvider(id, { estado: 'activo' });
-                    Helpers.handleError({ message: 'Proveedor reactivado con éxito' });
+                    Providers.addProvider(provider);
+                    Helpers.handleError({ message: 'Proveedor registrado con éxito' });
                 }
+                resetForm();
                 loadProviders();
             } catch (error) {
                 Helpers.handleError(error);
             }
+        });
+
+        // Búsqueda de proveedores
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+            const filteredProviders = Providers.searchProviders(query);
+            renderProviders(filteredProviders);
+        });
+
+        // Cancelar edición
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        // Cargar proveedores iniciales
+        console.log('Inicializando vista de proveedores...');
+        loadProviders();
+    });
+
+    // Funciones globales
+    window.editProvider = function(id) {
+        const provider = Providers.getProvider(id);
+        if (provider) {
+            editingId = id;
+            document.getElementById('providerId').value = id;
+            document.getElementById('nombre').value = provider.nombre;
+            document.getElementById('ruc').value = provider.ruc;
+            document.getElementById('ruc').readOnly = true;
+            document.getElementById('direccion').value = provider.direccion;
+            document.getElementById('telefono').value = provider.telefono;
+            document.getElementById('email').value = provider.email;
+            document.getElementById('productos').value = provider.productos || '';
+            
+            document.getElementById('formTitle').textContent = 'Editar Proveedor';
+            document.getElementById('cancelEdit').style.display = 'inline-block';
         }
-    }
-};
-</script> 
+    };
+
+    window.toggleProviderStatus = function(id) {
+        const provider = Providers.getProvider(id);
+        if (provider) {
+            const action = provider.estado === 'activo' ? 'desactivar' : 'reactivar';
+            if (confirm(`¿Está seguro de ${action} este proveedor?`)) {
+                try {
+                    if (provider.estado === 'activo') {
+                        Providers.deleteProvider(id);
+                        Helpers.handleError({ message: 'Proveedor desactivado con éxito' });
+                    } else {
+                        Providers.updateProvider(id, { estado: 'activo' });
+                        Helpers.handleError({ message: 'Proveedor reactivado con éxito' });
+                    }
+                    loadProviders();
+                } catch (error) {
+                    Helpers.handleError(error);
+                }
+            }
+        }
+    };
+    </script>
+</div> 

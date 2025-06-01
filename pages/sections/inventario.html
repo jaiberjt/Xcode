@@ -1,0 +1,152 @@
+<div class="section-content">
+    <h2>Gestión de Inventario</h2>
+
+    <div class="grid-container">
+        <!-- Formulario de Registro de Producto -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Registro de Producto</h3>
+            </div>
+            <div class="card-body">
+                <form id="productForm" class="form">
+                    <div class="form-group">
+                        <label for="codigo">Código de Producto</label>
+                        <input type="text" id="codigo" name="codigo" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción</label>
+                        <textarea id="descripcion" name="descripcion" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad</label>
+                            <input type="number" id="cantidad" name="cantidad" class="form-control" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="proveedor">Proveedor</label>
+                            <input type="text" id="proveedor" name="proveedor" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar Producto</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Productos -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Inventario Actual</h3>
+                <div class="search-box">
+                    <input type="text" id="searchProduct" class="form-control" placeholder="Buscar producto...">
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Proveedor</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList">
+                            <!-- Los productos se cargarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const productForm = document.getElementById('productForm');
+    const productList = document.getElementById('productList');
+    const searchInput = document.getElementById('searchProduct');
+
+    // Cargar productos existentes
+    function loadProducts() {
+        const products = Inventory.getAllProducts();
+        renderProducts(products);
+    }
+
+    // Renderizar productos en la tabla
+    function renderProducts(products) {
+        productList.innerHTML = products.map(product => `
+            <tr>
+                <td>${Helpers.sanitizeInput(product.codigo)}</td>
+                <td>${Helpers.sanitizeInput(product.descripcion)}</td>
+                <td>${product.cantidad}</td>
+                <td>${Helpers.sanitizeInput(product.proveedor)}</td>
+                <td>
+                    <button class="btn btn-sm btn-text" onclick="editProduct('${product.codigo}')">
+                        <i class="material-icons">edit</i>
+                    </button>
+                    <button class="btn btn-sm btn-text" onclick="deleteProduct('${product.codigo}')">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Manejar registro de producto
+    productForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(productForm);
+        const product = {
+            codigo: formData.get('codigo'),
+            descripcion: formData.get('descripcion'),
+            cantidad: parseInt(formData.get('cantidad')),
+            proveedor: formData.get('proveedor')
+        };
+
+        try {
+            Inventory.addProduct(product);
+            loadProducts();
+            productForm.reset();
+            Helpers.handleError({ message: 'Producto registrado con éxito' });
+        } catch (error) {
+            Helpers.handleError(error);
+        }
+    });
+
+    // Búsqueda de productos
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        const filteredProducts = Inventory.searchProducts(query);
+        renderProducts(filteredProducts);
+    });
+
+    // Cargar productos iniciales
+    loadProducts();
+});
+
+// Funciones globales para edición y eliminación
+window.editProduct = function(codigo) {
+    const product = Inventory.getProduct(codigo);
+    if (product) {
+        document.getElementById('codigo').value = product.codigo;
+        document.getElementById('descripcion').value = product.descripcion;
+        document.getElementById('cantidad').value = product.cantidad;
+        document.getElementById('proveedor').value = product.proveedor;
+    }
+};
+
+window.deleteProduct = function(codigo) {
+    if (confirm('¿Está seguro de eliminar este producto?')) {
+        try {
+            Inventory.deleteProduct(codigo);
+            document.getElementById('productList').querySelector(`tr[data-codigo="${codigo}"]`)?.remove();
+            Helpers.handleError({ message: 'Producto eliminado con éxito' });
+        } catch (error) {
+            Helpers.handleError(error);
+        }
+    }
+};
+</script> 

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Helios S.A.</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pinturas Helios S.A</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item" data-section="soporte">
+                <i class="material-icons">support</i>
+                <span>Soporte Técnico</span>
+            </li>
+            <li class="nav-item" data-section="proveedores">
+                <i class="material-icons">people</i>
+                <span>Gestión de Proveedores</span>
+            </li>
+            <li class="nav-item" data-section="inventario">
+                <i class="material-icons">inventory</i>
+                <span>Gestión de Inventario</span>
+            </li>
+            <li class="nav-item" data-section="usuarios">
+                <i class="material-icons">settings</i>
+                <span>Configuración</span>
+            </li>
+            <li class="nav-item" data-section="pedidos">
+                <i class="material-icons">local_shipping</i>
+                <span>Pedidos y Despachos</span>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn btn-text">
+                <i class="material-icons">logout</i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="user-info">
+                <i class="material-icons">account_circle</i>
+                <span id="userName"></span>
+            </div>
+        </header>
+
+        <div class="content" id="mainContent">
+            <!-- El contenido se cargará dinámicamente aquí -->
+        </div>
+    </main>
+
+    <script src="../js/utils/helpers.js"></script>
+    <script src="../js/modules/auth.js"></script>
+    <script src="../js/modules/inventory.js"></script>
+    <script src="../js/modules/providers.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            if (!Auth.checkAuth()) {
+                return;
+            }
+
+            // Mostrar información del usuario
+            const user = Auth.getCurrentUser();
+            document.getElementById('userName').textContent = user.username;
+
+            // Manejar navegación
+            const navItems = document.querySelectorAll('.nav-item');
+            const mainContent = document.getElementById('mainContent');
+
+            const loadSection = async (section) => {
+                try {
+                    const response = await fetch(`sections/${section}.html`);
+                    if (!response.ok) throw new Error('Error cargando la sección');
+                    const content = await response.text();
+                    mainContent.innerHTML = content;
+
+                    // Activar el ítem de navegación seleccionado
+                    navItems.forEach(item => {
+                        item.classList.toggle('active', item.dataset.section === section);
+                    });
+                } catch (error) {
+                    Helpers.handleError(error);
+                }
+            };
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    loadSection(item.dataset.section);
+                });
+            });
+
+            // Cargar sección inicial
+            loadSection('soporte');
+
+            // Manejar cierre de sesión
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+        });
+    </script>
+</body>
+</html> 

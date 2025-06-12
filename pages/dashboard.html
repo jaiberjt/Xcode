@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Helios S.A.</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pinturas Helios S.A.</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item" data-section="soporte">
+                <i class="material-icons">support</i>
+                <span>Soporte Técnico</span>
+            </li>
+            <li class="nav-item" data-section="proveedores">
+                <i class="material-icons">people</i>
+                <span>Gestión de Proveedores</span>
+            </li>
+            <li class="nav-item" data-section="inventario">
+                <i class="material-icons">inventory</i>
+                <span>Gestión de Inventario</span>
+            </li>
+            <li class="nav-item" data-section="usuarios">
+                <i class="material-icons">settings</i>
+                <span>Configuración</span>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn btn-text">
+                <i class="material-icons">logout</i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="user-info">
+                <i class="material-icons">account_circle</i>
+                <span id="userName"></span>
+            </div>
+        </header>
+
+        <div id="mainContent" class="content">
+            <!-- El contenido se cargará dinámicamente aquí -->
+        </div>
+    </main>
+
+    <!-- Scripts base -->
+    <script src="../js/utils/helpers.js"></script>
+    <script src="../js/modules/auth.js"></script>
+    <script src="../js/modules/providers.js"></script>
+    <script src="../js/modules/inventory.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            if (!Auth.checkAuth()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Mostrar información del usuario
+            const user = Auth.getCurrentUser();
+            document.getElementById('userName').textContent = user.nombre;
+
+            // Manejar navegación
+            const navItems = document.querySelectorAll('.nav-item');
+            const mainContent = document.getElementById('mainContent');
+            let currentSection = null;
+
+            const loadSection = async (section) => {
+                try {
+                    // Si es la misma sección, no hacemos nada
+                    if (currentSection === section) return;
+
+                    console.log(`Iniciando carga de sección: ${section}`);
+                    
+                    // Desactivar todos los items de navegación
+                    navItems.forEach(item => item.classList.remove('active'));
+                    
+                    // Activar el item actual
+                    const currentItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+                    if (currentItem) {
+                        currentItem.classList.add('active');
+                    }
+
+                    // Cargar el contenido de la sección
+                    const response = await fetch(`sections/${section}.html`);
+                    if (!response.ok) {
+                        throw new Error(`Error cargando la sección ${section}: ${response.statusText}`);
+                    }
+                    
+                    const content = await response.text();
+                    
+                    // Limpiar el contenido actual y cargar el nuevo
+                    mainContent.innerHTML = '';
+                    mainContent.innerHTML = content;
+
+                    // Actualizar la sección actual
+                    currentSection = section;
+
+                    // Inicializar la sección si tiene función de inicialización
+                    const initFunctionName = `init${section.charAt(0).toUpperCase() + section.slice(1)}`;
+                    console.log(`Buscando función de inicialización: ${initFunctionName}`);
+                    
+                    if (typeof window[initFunctionName] === 'function') {
+                        console.log(`Ejecutando inicialización de ${section}`);
+                        try {
+                            await window[initFunctionName]();
+                            console.log(`Sección ${section} inicializada correctamente`);
+                        } catch (error) {
+                            console.error(`Error en la inicialización de ${section}:`, error);
+                            throw error;
+                        }
+                    } else {
+                        console.log(`No se encontró función de inicialización para ${section}`);
+                    }
+
+                } catch (error) {
+                    console.error('Error al cargar la sección:', error);
+                    mainContent.innerHTML = `
+                        <div class="error-message">
+                            <i class="material-icons">error</i>
+                            <p>Error al cargar la sección: ${error.message}</p>
+                        </div>
+                    `;
+                    Helpers.handleError(error);
+                }
+            };
+
+            // Manejar clics en la navegación
+            navItems.forEach(item => {
+                item.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    console.log(`Click en sección: ${section}`);
+                    await loadSection(section);
+                });
+            });
+
+            // Cargar sección inicial (inventario)
+            console.log('Cargando sección inicial...');
+            loadSection('inventario');
+
+            // Manejar cierre de sesión
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+        });
+    </script>
+</body>
+</html> 

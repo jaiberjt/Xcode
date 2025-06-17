@@ -1,0 +1,17 @@
+{
+  "name": "helios-frontend",
+  "version": "1.0.0",
+  "description": "Frontend para la aplicación Helios",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.7"
+  },
+  "devDependencies": {
+    "vite": "^5.1.4"
+  }
+} 

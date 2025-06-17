@@ -3,47 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Helios S.A.</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Login - Helios</title>
+    <link rel="stylesheet" href="/src/css/login.css">
 </head>
 <body>
-    <div class="login-page">
-        <form id="loginForm" class="login-form">
-            <h1>Pinturas Helios S.A.</h1>
-            <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" name="username" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
-        </form>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>Helios</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+        </div>
     </div>
-
-    <script src="../js/utils/helpers.js"></script>
-    <script src="../js/modules/auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginForm = document.getElementById('loginForm');
-
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-
-                try {
-                    if (Auth.login(username, password)) {
-                        window.location.href = 'dashboard.html';
-                    }
-                } catch (error) {
-                    Helpers.handleError(error);
-                }
-            });
-        });
-    </script>
+    <script type="module" src="/src/js/login.js"></script>
 </body>
 </html> 
